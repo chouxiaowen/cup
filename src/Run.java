@@ -8,8 +8,8 @@ public class Run {
 //		System.out.print("aaaaaaa");
 		
 		ItemSet itemSet = new ItemSet("data/item.txt");
-		UserSet userSet = new UserSet("data/user_profile.txt");
-		
+		UserSet userSet = new UserSet("data/user_profile.txt");//, "data/user_key_word.txt");
+
 //		item.id = "aaaa";
 //		item.cat = "bbbbb";
 //		System.out.println(item.cat);

@@ -7,7 +7,7 @@ class User {
 	int gender;
 	int numTweets;
 	ArrayList<Integer> tags;
-	Map<Integer, Double> kws;
+	HashMap<Integer, Double> kws;
 	
 	User(String profile) {
 		String [] tmpList = profile.split("\t");
@@ -36,18 +36,39 @@ class User {
 			}
 		}
 	}
+	
+	int getId()
+	{
+		return id;
+	}
+	
+	void addKeywords(String line)
+	{
+		kws = new HashMap<Integer, Double>();
+		String [] kwList = line.split(";");
+		for (String tmp: kwList) {
+			String [] pair = tmp.split(":");
+			kws.put(Integer.parseInt(pair[0]), Double.parseDouble(pair[1]));
+		}
+	}
 }
 
 class UserSet {
 	
-	ArrayList<User> users;
+	HashMap<Integer, User> users;
 	
 	UserSet() {
 	}
 	
-	UserSet(String fname) {
-		users = new ArrayList<User> ();
-		loadProfileFile(fname);
+	UserSet(String fnameProfile) {
+		users = new HashMap<Integer, User> ();
+		loadProfileFile(fnameProfile);
+	}
+	
+	UserSet(String fnameProfile, String fnameKeywords) {
+		users = new HashMap<Integer, User> ();
+		loadProfileFile(fnameProfile);
+		loadKeywordFile(fnameKeywords);
 	}
 	
 	void loadProfileFile(String fname)
@@ -60,11 +81,33 @@ class UserSet {
 			String line = null;
 			while((line = bread.readLine()) != null)
 			{
-				users.add(new User(line));
+				User user = new User(line);
+				users.put(user.getId(), user);
 			}
 		} catch(Exception ex) {
 			ex.printStackTrace();
 		}
 	}
 	
+	void loadKeywordFile(String fname)
+	{
+		try {
+			File fin = new File(fname);
+			FileReader fread = new FileReader(fin);
+			BufferedReader bread = new BufferedReader(fread);
+			
+			String line = null;
+			while((line=bread.readLine()) != null)
+			{
+				String [] tmpPair = line.split("\t");
+				
+				int tmpId = Integer.parseInt(tmpPair[0]);
+				User tmpUser = users.get(tmpId);
+				tmpUser.addKeywords(tmpPair[1]);
+				users.put(tmpId, tmpUser);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
 }
