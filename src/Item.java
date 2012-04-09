@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-class Item {
+class Item implements Serializable {
 	
 	int id;
 	ArrayList<String> cat;
@@ -25,22 +25,23 @@ class Item {
 	}
 }
 
-class ItemSet {
+class ItemSet implements Serializable {
 	
 	ArrayList<Item> items;
+//	static final long serialVersionUID;
 	
 	public ItemSet() {
 	}
 	
-	public ItemSet(String fname) {
+	public ItemSet(String dir, String fname) {
 		items = new ArrayList<Item> ();
-		loadFile(fname);
-	}
+		loadFromText(dir, fname);
+	}	
 	
-	public void loadFile(String fname) {
+	public void loadFromText(String dir, String fname) {
 		items = new ArrayList<Item>();
 		try {
-			File fin = new File(fname);
+			File fin = new File(dir+fname);
 			FileReader fread = new FileReader(fin);
 			BufferedReader bread = new BufferedReader(fread);
 			
@@ -52,8 +53,14 @@ class ItemSet {
 			}
 			bread.close();
 			
+			// serialize the object to a .dat file
+//			DiskIO.writeObject(dir+"Item.dat", this);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+	}
+	
+	public void writeObj(String fname) {
+		DiskIO.writeObject(fname, this);
 	}
 }

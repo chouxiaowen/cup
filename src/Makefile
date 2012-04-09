@@ -8,7 +8,8 @@ clean :
 	rm -f *.class
 
 %.class : %.java
-	$(JAVAC) -d ../bin -cp ../bin $<
+	$(JAVAC) -d ../bin -cp ../lib/kryo2-2.02-all.jar:../bin $<
 
 test:
-	java -cp ../bin Run /mnt/cup/data/
+	java -Xmx8000M -Xms2000M -cp ../lib/kryo2-2.02-all.jar:../bin  Run /mnt/cup/data/
+

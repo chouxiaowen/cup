@@ -1,7 +1,7 @@
 import java.util.*;
 import java.io.*;
 
-public class Graph {
+public class Graph implements Serializable {
 	HashMap<Integer, ArrayList<Integer> > adjList;
 	
 	Graph() {
@@ -12,7 +12,7 @@ public class Graph {
 	}
 	
 	void loadFile(String fname) {
-		System.out.print("Reading AGraph from text...");
+		System.out.print("Reading Graph from text...");
 		adjList = new HashMap<Integer, ArrayList<Integer> > ();
 		try {
 			File fin = new File(fname);
@@ -38,5 +38,9 @@ public class Graph {
 			ex.printStackTrace();
 		}
 		System.out.println("Done!");
+	}
+	
+	public void writeObj(String fname) {
+		DiskIO.writeObject(fname, this);
 	}
 }

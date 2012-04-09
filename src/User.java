@@ -1,13 +1,16 @@
 import java.util.*;
 import java.io.*;
 
-class User {
+class User implements Serializable {
 	int id;
 	int year;
 	int gender;
 	int numTweets;
 	ArrayList<Integer> tags;
 	HashMap<Integer, Double> kws;
+	
+	User() {
+	}
 	
 	User(String profile) {
 		String [] tmpList = profile.split("\t");
@@ -53,7 +56,7 @@ class User {
 	}
 }
 
-class UserSet {
+class UserSet implements Serializable {
 	
 	HashMap<Integer, User> users;
 	
@@ -110,4 +113,9 @@ class UserSet {
 			ex.printStackTrace();
 		}
 	}
+	
+	public void writeObj(String fname) {
+		DiskIO.writeObject(fname, this);
+	}
+	
 }
