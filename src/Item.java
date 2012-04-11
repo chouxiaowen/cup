@@ -3,6 +3,7 @@ import java.util.*;
 
 class Item implements Serializable {
 	
+	private static final long serialVersionUID = 1L;
 	int id;
 	ArrayList<String> cat;
 	ArrayList<Integer> keywords;
@@ -27,8 +28,8 @@ class Item implements Serializable {
 
 class ItemSet implements Serializable {
 	
+	private static final long serialVersionUID = 1L;
 	ArrayList<Item> items;
-//	static final long serialVersionUID;
 	
 	public ItemSet() {
 	}
@@ -36,7 +37,7 @@ class ItemSet implements Serializable {
 	public ItemSet(String dir, String fname) {
 		items = new ArrayList<Item> ();
 		loadFromText(dir, fname);
-	}	
+	}
 	
 	public void loadFromText(String dir, String fname) {
 		items = new ArrayList<Item>();
@@ -52,15 +53,13 @@ class ItemSet implements Serializable {
 				items.add(new Item(tmp[0], tmp[1], tmp[2]));
 			}
 			bread.close();
-			
-			// serialize the object to a .dat file
-//			DiskIO.writeObject(dir+"Item.dat", this);
+
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
 	
-	public void writeObj(String fname) {
-		DiskIO.writeObject(fname, this);
+	public int size() {
+		return items.size();
 	}
 }

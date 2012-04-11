@@ -1,7 +1,10 @@
 import java.util.*;
+import java.util.Map.Entry;
 import java.io.*;
 
 public class Graph implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
 	HashMap<Integer, ArrayList<Integer> > adjList;
 	
 	Graph() {
@@ -40,7 +43,16 @@ public class Graph implements Serializable {
 		System.out.println("Done!");
 	}
 	
-	public void writeObj(String fname) {
-		DiskIO.writeObject(fname, this);
+	void getStats() {
+		Iterator<Map.Entry<Integer, ArrayList<Integer>>> it = adjList.entrySet().iterator();
+		int tmpSum = 0;
+		int tmpCnt = 0;
+		while (it.hasNext()) {
+			Map.Entry<Integer, ArrayList<Integer> > etr = it.next();
+			tmpSum += etr.getValue().size();
+			tmpCnt ++;
+		}
+		System.out.println(tmpCnt);
+		System.out.println(tmpSum);
 	}
 }

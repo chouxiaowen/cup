@@ -2,6 +2,8 @@ import java.util.*;
 import java.io.*;
 
 class Action implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 	int numAt;
 	int numRt;
 	int numCmt;
@@ -18,6 +20,8 @@ class Action implements Serializable {
 
 // Action Graph
 public class ActGraph implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
 	HashMap<Integer, HashMap<Integer, Action>> actions;
 	
 	ActGraph() {	
@@ -60,7 +64,22 @@ public class ActGraph implements Serializable {
 		System.out.println("Done!");
 	}
 	
-	public void writeObj(String fname) {
-		DiskIO.writeObject(fname, this);
+	void getStats() {
+		Iterator<Map.Entry<Integer, HashMap<Integer, Action>>> it = actions.entrySet().iterator();
+		
+		int tmpSum = 0;
+		int tmpCnt = 0;
+		while(it.hasNext()) {
+			Map.Entry<Integer, HashMap<Integer, Action>> etr = it.next();
+			
+			tmpSum += etr.getValue().size();
+			tmpCnt++;
+		}	
+		System.out.println(tmpSum);
+			System.out.println(tmpCnt);
+	}
+	
+	public void writeObj(String dir, String fname) {
+		DiskIO.writeObject(this, dir, fname);
 	}
 }

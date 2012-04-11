@@ -2,6 +2,8 @@ import java.util.*;
 import java.io.*;
 
 class User implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 	int id;
 	int year;
 	int gender;
@@ -58,6 +60,7 @@ class User implements Serializable {
 
 class UserSet implements Serializable {
 	
+	private static final long serialVersionUID = 1L;
 	HashMap<Integer, User> users;
 	
 	UserSet() {
@@ -114,8 +117,8 @@ class UserSet implements Serializable {
 		}
 	}
 	
-	public void writeObj(String fname) {
-		DiskIO.writeObject(fname, this);
+	public void writeObj(String dir, String fname) {
+		DiskIO.writeObject(this, dir, fname);
 	}
 	
 }
