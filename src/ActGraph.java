@@ -78,8 +78,4 @@ public class ActGraph implements Serializable {
         System.out.println(tmpSum);
             System.out.println(tmpCnt);
     }
-    
-    public void writeObj(String dir, String fname) {
-        DiskIO.writeObject(this, dir, fname);
-    }
 }

@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<project name="cup" basedir="." default="jar">
+    <property name="src" value="src"/>
+    <property name="output" value="bin"/>
+ 
+    <target name="compile" depends="create">
+        <javac destdir="bin" includeantruntime="false">            
+            <src path="${src}"/>            
+            <classpath>
+                <pathelement path="${classpath}"/>
+                <pathelement location="lib/kryo2-2.02-all.jar"/>
+            </classpath>
+        </javac>
+    </target>
+ 
+    <target name="jar" depends="compile">
+        <jar destfile="bin/cup.jar">
+            <fileset dir="bin"/>
+        </jar>
+    </target>
+ 
+    <target name="clean">
+        <delete dir="${output}"/>
+    </target>
+ 
+    <target name="create" depends="clean">
+        <mkdir dir="${output}"/>
+    </target>
+    
+    <target name="run" depends="compile">
+        <java classname="Run"
+            fork="true"
+            failonerror="true"
+            maxmemory="20000m">
+         <arg value="data/"/>
+         <classpath>
+             <pathelement path="${classpath}"/>
+             <pathelement location="lib/kryo2-2.02-all.jar"/>
+             <pathelement path="bin/"/>
+         </classpath>
+        </java>
+    </target>
+</project>
