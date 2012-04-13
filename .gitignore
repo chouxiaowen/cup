@@ -1,2 +1,4 @@
 bin/
 src_bk/
+src/runit
+src/Makefile
