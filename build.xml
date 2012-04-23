@@ -9,6 +9,7 @@
             <classpath>
                 <pathelement path="${classpath}"/>
                 <pathelement location="lib/kryo2-2.02-all.jar"/>
+                <pathelement location="lib/libsvm.jar"/>
             </classpath>
         </javac>
     </target>
@@ -32,10 +33,11 @@
             fork="true"
             failonerror="true"
             maxmemory="20000m">
-         <arg value="data/"/>
+         <arg value="train.fv"/>
          <classpath>
              <pathelement path="${classpath}"/>
              <pathelement location="lib/kryo2-2.02-all.jar"/>
+             <pathelement location="lib/libsvm.jar"/>
              <pathelement path="bin/"/>
          </classpath>
         </java>

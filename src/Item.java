@@ -8,13 +8,11 @@ class Item implements Serializable {
     ArrayList<String> cat;
     ArrayList<Integer> keywords;
     
-    public Item () {
+    public Item() {
     }
     
-    public Item (String ii, String cc, String kk) {
-        
-        id = Integer.parseInt(ii);
-        
+    public Item(String ii, String cc, String kk) {
+        id = Integer.parseInt(ii);        
         cat = new ArrayList<String> (); 
         Collections.addAll(cat, cc.split("\\."));
         

@@ -2,7 +2,7 @@ import java.util.*;
 import java.io.*;
 
 class Action implements Serializable {
-
+    
     private static final long serialVersionUID = 1L;
     int numAt;
     int numRt;

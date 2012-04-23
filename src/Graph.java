@@ -6,12 +6,16 @@ public class Graph implements Serializable {
     private static final long serialVersionUID = 1L;
     HashMap<Integer, HashSet<Integer>> adjList;
     HashMap<Integer, HashSet<Integer>> revAdjList;
+
+    
+//// -------- Graph structure construction functions -------
     
     Graph() {
     }
     
     Graph(String fname) {
         loadFile(fname);
+        buildRevGraph();
     }
     
     void loadFile(String fname) {
@@ -42,6 +46,32 @@ public class Graph implements Serializable {
         }
         System.out.println("Done!");
     }
+    
+    void buildRevGraph() {
+        System.out.print("Constructing Reverse Graph...");
+        if (revAdjList != null)
+            return ;
+        
+        revAdjList = new HashMap<Integer, HashSet<Integer>> ();
+        Iterator<Map.Entry<Integer, HashSet<Integer>>> it = adjList.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<Integer, HashSet<Integer>> etr = it.next();       
+            int curSrc = etr.getKey();
+            Iterator<Integer> it2 = etr.getValue().iterator();
+            while (it2.hasNext()) {
+                int curDes = it2.next();
+                HashSet<Integer> tmpVal = revAdjList.get(curDes);
+                if (tmpVal == null) {
+                    tmpVal = new HashSet<Integer> ();
+                }
+                tmpVal.add(curSrc);
+                revAdjList.put(curDes, tmpVal);
+            }           
+        }
+        System.out.println("Finished");
+    }
+    
+//// -------- Queries on the Graph --------
     
     int getOutDegree(int u) {
         if (adjList.get(u) == null) {
@@ -75,27 +105,42 @@ public class Graph implements Serializable {
         System.out.println(tmpSum);
     }
     
-    void buildRevGraph() {
-        System.out.print("Constructing Reverse Graph...");
-        if (revAdjList != null)
-            return ;
+    
+    int getSizeIntersect(HashSet<Integer> s1, HashSet<Integer> s2) {
+        HashSet<Integer> tmpSet;
         
-        revAdjList = new HashMap<Integer, HashSet<Integer>> ();
-        Iterator<Map.Entry<Integer, HashSet<Integer>>> it = adjList.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<Integer, HashSet<Integer>> etr = it.next();       
-            int curSrc = etr.getKey();
-            Iterator<Integer> it2 = etr.getValue().iterator();
-            while (it2.hasNext()) {
-                int curDes = it2.next();
-                HashSet<Integer> tmpVal = revAdjList.get(curDes);
-                if (tmpVal == null) {
-                    tmpVal = new HashSet<Integer> ();
-                }
-                tmpVal.add(curSrc);
-                revAdjList.put(curDes, tmpVal);
-            }           
+        if (s1.size() < s2.size()) { 
+            tmpSet = new HashSet<Integer>(s1);
+            tmpSet.retainAll(s2);
+        } else {
+            tmpSet = new HashSet<Integer>(s2);
+            tmpSet.retainAll(s1);
         }
-        System.out.println("Finished");
+        return tmpSet.size();
     }
+    
+    // Count the common in-neighbors of u and v
+    int getNumCmnInNB(int u, int v) {
+        if (revAdjList.get(u) == null || revAdjList.get(v) == null)
+            return 0;
+            
+        return getSizeIntersect(revAdjList.get(u), revAdjList.get(v));
+    }
+    
+    // Count the common out-neighbors of u and v
+    int getNumCmnOutNB(int u, int v) {
+        if (adjList.get(u) == null || adjList.get(v) == null) 
+            return 0;
+        
+        return getSizeIntersect(adjList.get(u), adjList.get(v));
+    }
+    
+    // Count the intersection of u's out-neighbor and v's in-neighbor
+    // application: count the number of users u is following that follows v
+    int getNumIndFlw(int u, int v) {
+        if (adjList.get(u) == null || revAdjList.get(v) == null)
+            return 0;
+        return getSizeIntersect(adjList.get(u), revAdjList.get(v));    
+    }
+    
 }

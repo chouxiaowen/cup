@@ -81,6 +81,7 @@ class UserSet implements Serializable {
     
     void loadProfileFile(String fname)
     {   
+        System.out.print("Loading user profile from text...");
         try {
             File fin = new File(fname);
             FileReader fread = new FileReader(fin);
@@ -92,6 +93,7 @@ class UserSet implements Serializable {
                 User user = new User(line);
                 users.put(user.getId(), user);
             }
+            System.out.println("Done!");
         } catch(Exception ex) {
             ex.printStackTrace();
         }
@@ -99,6 +101,7 @@ class UserSet implements Serializable {
     
     void loadKeywordFile(String fname)
     {
+        System.out.print("Loading user keyword file from text...");
         try {
             File fin = new File(fname);
             FileReader fread = new FileReader(fin);
@@ -114,6 +117,7 @@ class UserSet implements Serializable {
                 tmpUser.addKeywords(tmpPair[1]);
                 users.put(tmpId, tmpUser);
             }
+            System.out.println("Done!");
         } catch (Exception ex) {
             ex.printStackTrace();
         }

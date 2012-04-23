@@ -9,11 +9,4 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>bin?ec2-204-236-171-31.us-west-1.compute.amazonaws.com</name>
-			<type>2</type>
-			<locationURI>rse://EC2-204-236-171-31.US-WEST-1.COMPUTE.AMAZONAWS.COM/home/ubuntu/hehe/bin?ec2-204-236-171-31.us-west-1.compute.amazonaws.com</locationURI>
-		</link>
-	</linkedResources>
 </projectDescription>
