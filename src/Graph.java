@@ -41,6 +41,7 @@ public class Graph implements Serializable {
                 
                 line = bread.readLine();
             }
+            bread.close();
         } catch (Exception ex) {
             ex.printStackTrace();
         }

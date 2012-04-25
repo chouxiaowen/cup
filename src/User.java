@@ -117,6 +117,7 @@ class UserSet implements Serializable {
                 tmpUser.addKeywords(tmpPair[1]);
                 users.put(tmpId, tmpUser);
             }
+            bread.close();
             System.out.println("Done!");
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -126,5 +127,4 @@ class UserSet implements Serializable {
     public void writeObj(String dir, String fname) {
         DiskIO.writeObject(this, dir, fname);
     }
-    
 }

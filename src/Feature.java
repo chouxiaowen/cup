@@ -51,25 +51,26 @@ public class Feature {
         
         return fv;
     }
-   
-    public static void outputFeatureMatrix(String fname, Graph graph, LabelSet train) {
-        System.out.println("Building feature matrix for training data...");
+    
+    public static void outputFeatureMatrix(String fname, Graph graph, LabelSet labelSet) {
+        System.out.println("Building feature matrix for labelSeting data...");
         try {
-            File fout = new File(fname);
-            FileWriter fw = new FileWriter(fout);
+            FileWriter fw = new FileWriter(fname);
             BufferedWriter bw = new BufferedWriter(fw);
-                
-            for (int i=0; i<train.trainSet.size(); ++i) {
+            PrintWriter pw = new PrintWriter(bw);    
+            
+            for (int i=0; i<labelSet.all.size(); ++i) {
                 if (i > 0 && i % 100000 == 0) {
                     System.out.println(i);
                     break;
                 }
-                LabelRec rec = train.trainSet.get(i);
+                LabelRec rec = labelSet.all.get(i);
                 int uid = rec.userId;
                 int iid = rec.itemId;
                 ArrayList<Double> fv = extractFeatureVector(uid, iid, graph);
-                bw.write(new FeatureVec(rec.label, fv).toString() + "\n");
+                pw.println(new FeatureVec(rec.label, fv).toString());
             }
+            pw.close();
         } catch (Exception ex) {
             ex.printStackTrace();
         }

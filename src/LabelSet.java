@@ -33,75 +33,67 @@ class ItemRecomm implements Comparable<ItemRecomm> {
         prob = p;
     }
     
-    
     public int compareTo(ItemRecomm cmp) { 
         //ascending order
         return (int)(cmp.prob - this.prob); 
     }
 }
 
-public class LabelSet { 
-    ArrayList<LabelRec> trainSet;
-    ArrayList<LabelRec> testSetPub;
-    ArrayList<LabelRec> testSetFinal;
-    
+public class LabelSet {
+//-----
+//**  basic members    
+//-----
+    boolean isTrainSet;
+    ArrayList<LabelRec> all;
+
+//** the two below are references to the first and second parts of the whole list,
+//** i.e., all = testSetPub + testSetFinal
+    List<LabelRec> testSetPub;
+    List<LabelRec> testSetFinal;
+
+//** statistic members - not required
     HashMap<Integer, Integer> itemCnt;
     HashMap<Integer, Integer> itemAcCnt;
+    
     
     LabelSet() {
     }
     
     LabelSet(String dir, String fname, Boolean flag) {
-        loadFile(dir, fname, flag);
-        init();
-    }
-
-    LabelSet(String dir, String fnameTrain, String fnameTest) {
-        loadFile(dir, fnameTrain, true);
-        loadFile(dir, fnameTrain, false);
+        isTrainSet = flag;
+        loadFile(dir, fname);
         init();
     }
     
     void init() {
-        if (trainSet != null)
+        if (isTrainSet) {
             buildItemCnts();
-        if (testSetPub != null) {
+        } else {
             splitTestSet();
         }
     }
     
     void splitTestSet() {
-        for (int i=0; i<testSetPub.size(); ++i) {
-            if(testSetPub.get(i).tstamp >= 1321891200) {
-                List<LabelRec> half = testSetPub.subList(i, testSetPub.size());
-                testSetFinal = new ArrayList<LabelRec>(half);
-                half.clear();
+        for (int i=0; i<all.size(); ++i) {
+            if(all.get(i).tstamp >= 1321891200) {
+                testSetPub = all.subList(0, i);   
+                testSetFinal = all.subList(i, all.size());
                 break;
             } 
         }
     }
     
-    void loadFile(String dir, String fname, Boolean flag) {
-        ArrayList<LabelRec> tmpPtr;
-        
-        if (flag) {
-            System.out.println("Reading training set from text... ");
-            trainSet = new ArrayList<LabelRec>();
-            tmpPtr = trainSet;
-        } else {
-            System.out.println("Reading testing set from text... ");
-            testSetPub = new ArrayList<LabelRec>();
-            tmpPtr = testSetPub;
-        }
-        
+    void loadFile(String dir, String fname) {
+        System.out.println("Loading file " + dir+fname + "...");
+        all = new ArrayList<LabelRec> ();
         try {
             File fin = new File(dir+fname);
             FileReader fread = new FileReader(fin);
-            BufferedReader bread = new BufferedReader(fread);
+            BufferedReader bread = new BufferedReader(fread);            
             
             String line = bread.readLine();
             while (line != null) {
-                tmpPtr.add(new LabelRec(line));
+                all.add(new LabelRec(line));
                 
                 line = bread.readLine();
             }
@@ -109,15 +101,25 @@ public class LabelSet {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        System.out.println("Done!");
     }
     
     void outputSubmitFile(String fname) {
         outputSubmitFile(fname, testSetPub, false);
-//        outputSubmitFile(fname, testSetFinal, true);
+        outputSubmitFile(fname, testSetFinal, true);
+    }
+        
+    void abuseLabel(int type, Graph graph) {
+        if (type == 1) {            
+            for (int i=0; i<all.size(); ++i) {
+                LabelRec rec = all.get(i);
+                rec.label = graph.getNumIndFlw(rec.userId, rec.itemId);
+            }
+        }
     }
     
-    void outputSubmitFile(String fname, ArrayList<LabelRec> testSet, boolean appendFlag) {
-        if (testSet == null) {
+    void outputSubmitFile(String fname, List<LabelRec> testSet, boolean appendFlag) {
+        if (all == null) {
             System.out.print("Cannot output submission file when there is no test results!");
             return ;
         }
@@ -126,8 +128,8 @@ public class LabelSet {
         for (int i=0; i<testSet.size(); ++i) {
             LabelRec rec = testSet.get(i);
             int u = rec.userId;
-            ItemRecomm recomm = new ItemRecomm(rec.itemId, rec.label);
             
+            ItemRecomm recomm = new ItemRecomm(rec.itemId, rec.label);
             ArrayList<ItemRecomm> tmpList = recomms.get(u);
             if (tmpList == null) {
                 tmpList = new ArrayList<ItemRecomm>();
@@ -139,46 +141,44 @@ public class LabelSet {
         }
         
         try {
-//            File fout = new File(fname);
             FileWriter fw = new FileWriter(fname, appendFlag);
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter pw = new PrintWriter(bw);
-            
+            if (!appendFlag)
+                pw.println("id,clicks");
             
             Iterator<Map.Entry<Integer, ArrayList<ItemRecomm>>> it = recomms.entrySet().iterator();
             int cnt = 0;
             while(it.hasNext()) { 
                 Map.Entry<Integer, ArrayList<ItemRecomm>> etr = it.next();
-            //    ArrayList<ItemRecomm> tmpList = etr.getValue();
-            //    Collections.sort(tmpList);
-            //    bw.write(etr.getKey().toString() + ",");
-            //    for (int i=0; i<tmpList.size(); ++i) {
-            //        if(i > 2) {
-            //            break;
-            //        }
-             //       if (i > 0) {
-            //            bw.write(" ");
-            //        }
-            //        bw.write(Integer.toString(tmpList.get(i).itemId));
-             //   }
+                ArrayList<ItemRecomm> tmpList = etr.getValue();
+                Collections.sort(tmpList);
+                pw.print(etr.getKey() + ",");
+                for (int i=0; i<tmpList.size(); ++i) {
+                    if(i > 1) {
+                        break;
+                    }
+                    if (i > 0) {
+                        pw.print(" ");
+                    }
+                    pw.print(tmpList.get(i).itemId);//+":"+tmpList.get(i).prob);
+                }
                 pw.print("\n");
-            //  bw.write("\n");
                 cnt++;
             }
+            pw.close();
             System.out.println(cnt);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
-
-//**  
-// For each item appeared in the train data, count its # occurrences and # being accepted
-//**
+  
+//** For each item appeared in the train data, count its # occurrences and # being accepted
     void buildItemCnts() {
         itemCnt = new HashMap<Integer, Integer>();
         itemAcCnt = new HashMap<Integer, Integer>(); 
         
-        for (LabelRec rec: trainSet) {
+        for (LabelRec rec: all) {
             Integer tmpVal = itemCnt.get(rec.itemId);
             if (tmpVal == null) {
                 itemCnt.put(rec.itemId, 1);
@@ -206,9 +206,26 @@ public class LabelSet {
 //            System.out.println(tmpK + "\t" + tmpV + "\t" + (itemAcCnt.get(tmpK) != null ? itemAcCnt.get(tmpK) : 0));      
 //        }
     }
-
     
     
+// User the SVM predicted result file to update the labels
+    public void updateLabels(String dirTrain, String fileTest) { 
+        System.out.println("Converting Test Feature Matrix back to Test file: ");
+        try {
+            BufferedReader brTest = new BufferedReader(new FileReader(dirTrain+fileTest)); 
+        
+            String line = brTest.readLine();
+            for (int i=0; i<all.size() && line != null; ++i) {
+                double prob = Double.parseDouble(line);
+                all.get(i).label = prob;
+                
+                line = brTest.readLine();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    
+    }
 ////////////////----------------- Queries ----------------------   
 
     public int getItemCnt(int itemId) {
@@ -233,7 +250,7 @@ public class LabelSet {
         System.out.println("--- Getting statistics about training data --- ");
         int cntPos = 0;
         int cntNeg = 0;
-        for (LabelRec r: trainSet) {
+        for (LabelRec r: all) {
             if (r.label == 1) {
                 cntPos++;
             }
@@ -248,7 +265,7 @@ public class LabelSet {
         HashMap<Integer, Integer> cntItemPos = new HashMap<Integer, Integer> ();
         HashMap<Integer, Integer> cntItemNeg = new HashMap<Integer, Integer> ();
         
-        for (LabelRec r: trainSet) {            
+        for (LabelRec r: all) {            
             if (r.label == 1) {
                 Integer val = cntItemPos.get(r.itemId);
                 if (val != null)
@@ -273,7 +290,7 @@ public class LabelSet {
             }
         }
         
-        System.out.println("Size of training set" + trainSet.size());
+        System.out.println("Size of training set" + all.size());
         System.out.println("Number of positive examples: " + cntPos);
         System.out.println("Number of negative examples: " + cntNeg);
         System.out.println("--- Done --- ");

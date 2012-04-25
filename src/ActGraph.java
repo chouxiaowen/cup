@@ -57,7 +57,7 @@ public class ActGraph implements Serializable {
     
                 line = bread.readLine();
             }
-
+            bread.close();
         } catch(Exception ex) {
             ex.printStackTrace();
         }   
@@ -76,6 +76,6 @@ public class ActGraph implements Serializable {
             tmpCnt++;
         }   
         System.out.println(tmpSum);
-            System.out.println(tmpCnt);
+        System.out.println(tmpCnt);
     }
 }
