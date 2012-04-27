@@ -124,7 +124,7 @@ class UserSet implements Serializable {
         }
     }
     
-    public void writeObj(String dir, String fname) {
-        DiskIO.writeObject(this, dir, fname);
+    public User getUser(int userId) {
+        return users.get(userId);
     }
 }

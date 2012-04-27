@@ -4,9 +4,13 @@ import java.io.*;
 public class Graph implements Serializable {
     
     private static final long serialVersionUID = 1L;
-    HashMap<Integer, HashSet<Integer>> adjList;
-    HashMap<Integer, HashSet<Integer>> revAdjList;
 
+    // the follow graph
+    HashMap<Integer, HashSet<Integer>> adjList;
+    // the reverse of follow graph
+    HashMap<Integer, HashSet<Integer>> revAdjList;
+    // the subset of follow graph where we only consider (*, item) edges
+    HashMap<Integer, HashSet<Integer>> adjListItem;
     
 //// -------- Graph structure construction functions -------
     
@@ -72,7 +76,32 @@ public class Graph implements Serializable {
         System.out.println("Finished");
     }
     
+    void buildItemGraph(ItemSet itemSet) {
+        adjListItem = new HashMap<Integer, HashSet<Integer>>();
+        Iterator<Map.Entry<Integer, HashSet<Integer>>> it = adjList.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<Integer, HashSet<Integer>> etr = it.next();
+            int src = etr.getKey();
+            HashSet<Integer> tmpVal = adjListItem.get(src);
+            Iterator<Integer> jt = etr.getValue().iterator();
+            while (jt.hasNext()) {
+                int des = jt.next();
+                if (itemSet.hasThis(des)) {
+                    if (tmpVal == null) {
+                        tmpVal = new HashSet<Integer>();
+                    }
+                    tmpVal.add(des);
+                }
+            }
+            adjListItem.put(src, tmpVal);
+        }
+    }
+    
 //// -------- Queries on the Graph --------
+    
+    HashSet<Integer> getFlwItems(int userId) {
+        return adjListItem.get(userId);
+    }
     
     int getOutDegree(int u) {
         if (adjList.get(u) == null) {
@@ -80,6 +109,18 @@ public class Graph implements Serializable {
         } else {
             return adjList.get(u).size();
         }
+    }
+    
+    // count how many items u is following
+    int getOutDegreeItem(int u, ItemSet itemSet) {
+        if (adjListItem == null) {
+            buildItemGraph(itemSet);
+        } 
+
+        if(adjListItem.get(u) == null)
+            return 0;
+        else
+            return adjListItem.get(u).size();  
     }
     
     int getInDegree(int u) {
@@ -105,7 +146,6 @@ public class Graph implements Serializable {
         System.out.println(tmpCnt);
         System.out.println(tmpSum);
     }
-    
     
     int getSizeIntersect(HashSet<Integer> s1, HashSet<Integer> s2) {
         HashSet<Integer> tmpSet;
@@ -144,4 +184,14 @@ public class Graph implements Serializable {
         return getSizeIntersect(adjList.get(u), revAdjList.get(v));    
     }
     
+    // Count # items u is following that follows v
+    int getNumIndFlwItem(int u, int v, ItemSet itemSet) {
+        if (adjListItem == null) {
+            buildItemGraph(itemSet);
+        }
+        if (adjListItem.get(u) == null || revAdjList.get(v) == null) {
+           return 0;  
+        }
+        return getSizeIntersect(adjListItem.get(u), revAdjList.get(v));
+    }
 }

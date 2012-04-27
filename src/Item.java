@@ -5,7 +5,7 @@ class Item implements Serializable {
     
     private static final long serialVersionUID = 1L;
     int id;
-    ArrayList<String> cat;
+    ArrayList<Short> cat;
     ArrayList<Integer> keywords;
     
     public Item() {
@@ -13,14 +13,22 @@ class Item implements Serializable {
     
     public Item(String ii, String cc, String kk) {
         id = Integer.parseInt(ii);        
-        cat = new ArrayList<String> (); 
-        Collections.addAll(cat, cc.split("\\."));
+        cat = new ArrayList<Short> ();
+        
+        String [] tmp = cc.split("\\.");
+        for (String s: tmp) {
+            cat.add(Short.parseShort(s));
+        }
         
         keywords = new ArrayList<Integer> ();
         String [] tmpList = kk.split(";");
         for (String tmpStr: tmpList) {
             keywords.add(Integer.parseInt(tmpStr));
         }
+    }
+    
+    public ArrayList<Short> getCat() {
+        return cat;
     }
 }
 
@@ -37,7 +45,7 @@ class ItemSet implements Serializable {
         loadFromText(dir, fname);
     }
     
-    public void loadFromText(String dir, String fname) {
+    void loadFromText(String dir, String fname) {
         items = new HashMap<Integer, Item>();
         try {
             File fin = new File(dir+fname);
@@ -53,6 +61,14 @@ class ItemSet implements Serializable {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+    
+    public boolean hasThis(int itemId) {
+        return items.get(itemId) != null;
+    }
+    
+    public Item getItem(int itemId) {
+        return items.get(itemId);
     }
     
     public int size() {

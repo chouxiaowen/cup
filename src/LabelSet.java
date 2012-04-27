@@ -35,26 +35,25 @@ class ItemRecomm implements Comparable<ItemRecomm> {
     
     public int compareTo(ItemRecomm cmp) { 
         //ascending order
-        return (int)(cmp.prob - this.prob); 
+        return Double.compare(cmp.prob, this.prob);
     }
 }
 
 public class LabelSet {
-//-----
+//----------------------------------------
 //**  basic members    
-//-----
+//----------------------------------------
     boolean isTrainSet;
     ArrayList<LabelRec> all;
-
-//** the two below are references to the first and second parts of the whole list,
-//** i.e., all = testSetPub + testSetFinal
+//* the two below are references to the first and second parts of the whole list,
+//* i.e., all = testSetPub + testSetFinal
     List<LabelRec> testSetPub;
     List<LabelRec> testSetFinal;
-
-//** statistic members - not required
+//----------------------------------------
+//** statistic members - not required to fill
+//----------------------------------------    
     HashMap<Integer, Integer> itemCnt;
     HashMap<Integer, Integer> itemAcCnt;
-    
     
     LabelSet() {
     }
@@ -101,23 +100,89 @@ public class LabelSet {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        System.out.println("Done!");
     }
     
     void outputSubmitFile(String fname) {
         outputSubmitFile(fname, testSetPub, false);
         outputSubmitFile(fname, testSetFinal, true);
     }
-        
-    void abuseLabel(int type, Graph graph) {
+    
+//* Change the prediction to some feature value, so that in effect the items will be sorted by solely this feature
+    void abuseLabel(int type, Graph graph, ItemSet itemSet) {
+        System.out.println("Updating test set labels with type " + type + " abuse");   
+        graph.buildItemGraph(itemSet);
         if (type == 1) {            
             for (int i=0; i<all.size(); ++i) {
                 LabelRec rec = all.get(i);
                 rec.label = graph.getNumIndFlw(rec.userId, rec.itemId);
             }
+        } else if (type == 2) {
+            for (int i=0; i<all.size(); ++i) {
+                LabelRec rec = all.get(i);
+                ArrayList<Double> val = Feature.getItemCatOverlap(rec.userId, rec.itemId, graph, itemSet);
+                //rec.label = val.get(0) + val.get(1)*10 + val.get(2)*100 + val.get(3)*1000;
+                
+                rec.label = val.get(3);
+                rec.label += graph.getInDegree(rec.itemId) * 1.0 / 1000000;
+            }
         }
+        System.out.println("Done!");
     }
     
+//* For each item appeared in the train data, count its # occurrences and # being accepted
+    void buildItemCnts() {
+        itemCnt = new HashMap<Integer, Integer>();
+        itemAcCnt = new HashMap<Integer, Integer>(); 
+        
+        for (LabelRec rec: all) {
+            Integer tmpVal = itemCnt.get(rec.itemId);
+            if (tmpVal == null) {
+                itemCnt.put(rec.itemId, 1);
+            } else {
+                itemCnt.put(rec.itemId, tmpVal+1);
+            }
+            
+            if(rec.label == -1) {
+                continue;
+            }
+            
+            tmpVal = itemAcCnt.get(rec.itemId);
+            if (tmpVal == null) {
+                itemAcCnt.put(rec.itemId, 1);
+            } else {
+                itemAcCnt.put(rec.itemId, tmpVal+1);
+            }
+        }
+        
+//        Iterator<Map.Entry<Integer, Integer> > it = itemCnt.entrySet().iterator();
+//        while (it.hasNext()) {
+//            Map.Entry<Integer, Integer> etr = it.next();
+//            int tmpK = etr.getKey();
+//            int tmpV = etr.getValue();
+//            System.out.println(tmpK + "\t" + tmpV + "\t" + (itemAcCnt.get(tmpK) != null ? itemAcCnt.get(tmpK) : 0));      
+//        }
+    }
+    
+//* Use SVM-predicted result file to update the labels
+    public void updateLabels(String dirTrain, String fileRes) { 
+        System.out.println("Converting Test Feature Matrix back to Test file: ");
+        try {
+            BufferedReader brTest = new BufferedReader(new FileReader(dirTrain+fileRes)); 
+        
+            String line = brTest.readLine();
+            for (int i=0; i<all.size() && line != null; ++i) {
+                double prob = Double.parseDouble(line.split(" ")[1]);
+                all.get(i).label = prob;
+                
+                line = brTest.readLine();
+            }
+            System.out.println("Finished!");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+//* Output to a submission file format. Presumably the labels have already been placed with prediction value    
     void outputSubmitFile(String fname, List<LabelRec> testSet, boolean appendFlag) {
         if (all == null) {
             System.out.print("Cannot output submission file when there is no test results!");
@@ -155,7 +220,7 @@ public class LabelSet {
                 Collections.sort(tmpList);
                 pw.print(etr.getKey() + ",");
                 for (int i=0; i<tmpList.size(); ++i) {
-                    if(i > 1) {
+                    if(i > 2) {
                         break;
                     }
                     if (i > 0) {
@@ -172,62 +237,11 @@ public class LabelSet {
             ex.printStackTrace();
         }
     }
-  
-//** For each item appeared in the train data, count its # occurrences and # being accepted
-    void buildItemCnts() {
-        itemCnt = new HashMap<Integer, Integer>();
-        itemAcCnt = new HashMap<Integer, Integer>(); 
-        
-        for (LabelRec rec: all) {
-            Integer tmpVal = itemCnt.get(rec.itemId);
-            if (tmpVal == null) {
-                itemCnt.put(rec.itemId, 1);
-            } else {
-                itemCnt.put(rec.itemId, tmpVal+1);
-            }
-            
-            if(rec.label == -1) {
-                continue;
-            }
-            
-            tmpVal = itemAcCnt.get(rec.itemId);
-            if (tmpVal == null) {
-                itemAcCnt.put(rec.itemId, 1);
-            } else {
-                itemAcCnt.put(rec.itemId, tmpVal+1);
-            }
-        }
-        
-//        Iterator<Map.Entry<Integer, Integer> > it = itemCnt.entrySet().iterator();
-//        while (it.hasNext()) {
-//            Map.Entry<Integer, Integer> etr = it.next();
-//            int tmpK = etr.getKey();
-//            int tmpV = etr.getValue();
-//            System.out.println(tmpK + "\t" + tmpV + "\t" + (itemAcCnt.get(tmpK) != null ? itemAcCnt.get(tmpK) : 0));      
-//        }
-    }
     
+//----------------------------------------
+//**  Queries
+//----------------------------------------
     
-// User the SVM predicted result file to update the labels
-    public void updateLabels(String dirTrain, String fileTest) { 
-        System.out.println("Converting Test Feature Matrix back to Test file: ");
-        try {
-            BufferedReader brTest = new BufferedReader(new FileReader(dirTrain+fileTest)); 
-        
-            String line = brTest.readLine();
-            for (int i=0; i<all.size() && line != null; ++i) {
-                double prob = Double.parseDouble(line);
-                all.get(i).label = prob;
-                
-                line = brTest.readLine();
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    
-    }
-////////////////----------------- Queries ----------------------   
-
     public int getItemCnt(int itemId) {
         Integer val = itemCnt.get(itemId);
         if (val == null) {
