@@ -5,8 +5,8 @@ class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
     int id;
-    int year;
-    int gender;
+    short year;
+    byte gender;
     int numTweets;
     ArrayList<Integer> tags;
     HashMap<Integer, Double> kws;
@@ -23,12 +23,12 @@ class User implements Serializable {
                 id = Integer.parseInt(tmpList[i]);
             } else if (i == 1) {
                 try {   // there are invalid entries observed in the data file, e.g., "0-0-"
-                    year = Integer.parseInt(tmpList[i]);
+                    year = Short.parseShort(tmpList[i]);
                 } catch (NumberFormatException ex) {
                     year = 0;   
                 }
             } else if (i == 2) {
-                gender = Integer.parseInt(tmpList[i]);
+                gender = Byte.parseByte(tmpList[i]);
             } else if (i == 3) {
                 numTweets = Integer.parseInt(tmpList[i]);           
             } else if (i == 4) {

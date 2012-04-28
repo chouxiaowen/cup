@@ -58,24 +58,102 @@ public class Feature {
         return scores;
     }
     
+    public static int getFansAgeMedian(int itemId, Graph graph, UserSet userSet) {
+        HashSet<Integer> tmp = graph.getFans(itemId);
+        if (tmp == null || tmp.size() == 0) {
+            return 1990;
+        }
+        Iterator<Integer> it = tmp.iterator();
+        ArrayList<Short> ages = new ArrayList<Short>();
+
+        while (it.hasNext()) {
+            int id = it.next();
+            ages.add(userSet.getUser(id).year);
+        }
+        Collections.sort(ages);
+
+        // if result is invalid, set it as global age median
+        int ret = ages.get(ages.size()/2);
+        if (ret < 1950 || ret > 2009) {
+            ret = 1990;
+        }
+        
+        return ret;
+    }
+    
+    public static double getFansMalePortion(int itemId, Graph graph, UserSet userSet) {
+        HashSet<Integer> tmp = graph.getFans(itemId);
+        //* if the item has less 50 fans, consider it as statistically insignificant
+        if (tmp == null || tmp.size() < 50) {
+            return 0.5;
+        }
+        int cntTot = 0;
+        int cntMale = 0;
+        Iterator<Integer> it = tmp.iterator();
+        while (it.hasNext()) {
+            int userId = it.next();
+            byte gender = userSet.getUser(userId).gender;
+            if (gender > 0) {
+                cntTot += 1;
+                if (gender == 1) {
+                    cntMale += 1;
+                }
+            }
+        }
+        if (cntTot < 50)
+            return 0.5;
+        return cntMale * 1.0 / cntTot;
+    }
+    
+    public static double getSexProb(int userId, int itemId, UserSet userSet, Graph graph) {
+        byte sex = userSet.getUser(userId).gender;        
+        double sexPortion = 0;
+        // if sex is missing, just assign it to 0.5
+        if (sex == 0) {
+            sexPortion = 0.5;
+        } else {
+            sexPortion = getFansMalePortion(itemId, graph, userSet);
+            sexPortion = sex == 1 ? sexPortion : 1-sexPortion;
+        }
+        return sexPortion;
+    }
+    
     // Return a similarity feature vector
     public static ArrayList<Double> extractFeatureVector(int userId, int itemId, Graph graph, ItemSet itemSet, UserSet userSet, ActGraph actGraph) {
         ArrayList<Double> fv = new ArrayList<Double>();
         
         //// ---- Add User's features ----
         
-        // Add Feature: user's info
-        fv.add((double)userSet.getUser(userId).gender);
+        // Add Feature: # user's tweets
+        //fv.add((double)userSet.getUser(userId).gender);
         fv.add((double)userSet.getUser(userId).numTweets);
-        fv.add((double)userSet.getUser(userId).year);
         
-        // Add Feature: # u's follows
+        // Add Feature: # user's follows
         int numFlwU = graph.getOutDegree(userId);
         fv.add((double)numFlwU);
         
-        // Add Feature: # i's fans
+        // Add Feature: # user's fans
+        fv.add((double)graph.getInDegree(userId));
+        
+        
+        //// ---- Add Item's features
+        
+        // Add Feature: # item's tweets
+        fv.add((double)userSet.getUser(itemId).numTweets);
+        
+        // Add Feature: # item's follows
+        int numFlwI = graph.getOutDegree(itemId);
+        fv.add((double)numFlwI);        
+        
+        // Add Feature: # item's fans
         int numFansI = graph.getInDegree(itemId);
-        fv.add((double)numFansI);
+        fv.add((double)numFansI);       
+        
+        // Add Feature: # item's gender
+        fv.add((double)userSet.getUser(itemId).gender);
+        
+        
+        //// ---- Add social graph feature about user and item
         
         // Add Feature: # u's follows that follow i
         int numIndFlwUI = graph.getNumIndFlw(userId, itemId);
@@ -84,12 +162,17 @@ public class Feature {
         // Add Feature: normalize the above # by numFlows of u  
         fv.add(numFlwU == 0 ? 0 : (double)numIndFlwUI / numFlwU);
                 
-        // Add Feature: # items u is following
+        // Add Feature: # items u is following that follows v
         fv.add((double)graph.getNumIndFlwItem(userId, itemId, itemSet));
         
         // Add Feature: how much category overlap is u's following item similar to the new item
         fv.addAll(getItemCatOverlap(userId, itemId, graph, itemSet));
         
+        // Add Feature: get the difference between user's age from item's fans age median 
+        fv.add(Math.abs(userSet.getUser(userId).year-(double)getFansAgeMedian(itemId, graph, userSet)));
+        
+        // Add Feature: get the portion of user's sex drawn from item's fans
+        fv.add(getSexProb(userId, itemId, userSet, graph));
         
         return fv;
     }

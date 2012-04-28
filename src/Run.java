@@ -92,13 +92,11 @@ public class Run {
             String fileTrainFv = "train_kernel_small.fv";
             String fileTestFv = "test_kernel_small.fv";
 
-//          buildFeatureMatrix(dirData, dirTrain, fileTrainFv);
+            buildFeatureMatrix(dirData, dirTrain, fileTrainFv);
 //          SVM.train(dirTrain, fileTrainFv);
-            UserSet userSet = new UserSet(dirData+"user_profile.txt", dirData+"user_key_word.txt");
-            Analysis.getAgeStats(userSet);
-//          ItemSet itemSet = new ItemSet(dirData, "item.txt");
 
-            //Analysis.getCatStats(itemSet);           
+//          ItemSet itemSet = new ItemSet(dirData, "item.txt");
+//          Analysis.getCatStats(itemSet);           
 //          LabelSet testSet = new LabelSet(dirData, "rec_log_test.txt", false);
 //          buildFeatureMatrix(dirData, dirTrain, fileTestFv, testSet, false);
 //          SVM.pred(dirTrain, fileTestFv, fileTrainFv, fileTestFv+".res");
@@ -136,6 +134,7 @@ class Analysis {
         }
         System.out.println("Number of item ids also in user ids: " + cntInter + " while " + cntDiff + "not.");
     }
+    
     // Get to know the depth of category hierarchy. ONE TIME THING
     // RESULTS: THREE POSSIBLE DEPTHS 2, 3, 4. All depth share the same domain, e.g., 1.2.1.3 -- the first 1 and third 1 have nothing to do with each other
     public static void getCatStats(ItemSet itemSet) {
@@ -153,6 +152,7 @@ class Analysis {
 //        System.out.println(cnt);
     }
     
+    //Result: Age median 1990, mean 1988
     public static void getAgeStats(UserSet userSet) {
         ArrayList<User> tmp = new ArrayList<User>(userSet.users.values());
         ArrayList<Integer> years = new ArrayList<Integer>();
@@ -196,5 +196,44 @@ class Analysis {
         System.out.println("age median: " + years.get(years.size()/2));
         System.out.println("age mean: " + (int)(sumYear*1.0/years.size()));
         
+    }
+    
+    // Result:  global: numTweets median: 50, mean: 113
+    //          from the demographic that ever accepted a recommendation: median 66, mean 151
+    public static void getUserNumTweetsStats(UserSet userSet) {
+        ArrayList<User> tmp = new ArrayList<User>(userSet.users.values());
+        ArrayList<Integer> cntTweets = new ArrayList<Integer>();
+        long sum = 0;
+
+        for (int i=0; i<tmp.size(); ++i) {
+            cntTweets.add(tmp.get(i).numTweets);
+            sum += cntTweets.get(i);
+            if (cntTweets.get(i) < 0) {
+                System.out.println(cntTweets.get(i));
+            }
+        }
+        Collections.sort(cntTweets);
+        System.out.println("numTweets median: " + cntTweets.get(cntTweets.size()/2));
+        System.out.println("numTweets mean: " + (int)(sum*1.0/cntTweets.size()));
+        
+        LabelSet labelSet = new LabelSet("data/", "rec_log_train.txt", false);
+        cntTweets = new ArrayList<Integer>();
+        sum = 0;
+        
+        tmp = new ArrayList<User> ();
+        for(LabelRec rec: labelSet.all) {
+            if (rec.label > 0) {
+                tmp.add(userSet.getUser(rec.userId));
+            }
+        }
+        
+        for (int i=0; i<tmp.size(); ++i) {
+            int tmpTweet = tmp.get(i).numTweets;
+            cntTweets.add(tmpTweet);
+            sum += tmpTweet;
+        }
+        Collections.sort(cntTweets);
+        System.out.println("numTweets median: " + cntTweets.get(cntTweets.size()/2));
+        System.out.println("numTweets mean: " + (int)(sum*1.0/cntTweets.size()));
     }
 }

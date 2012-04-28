@@ -103,6 +103,10 @@ public class Graph implements Serializable {
         return adjListItem.get(userId);
     }
     
+    HashSet<Integer> getFans(int itemId) {
+        return revAdjList.get(itemId);
+    }
+    
     int getOutDegree(int u) {
         if (adjList.get(u) == null) {
             return 0;
@@ -194,4 +198,6 @@ public class Graph implements Serializable {
         }
         return getSizeIntersect(adjListItem.get(u), revAdjList.get(v));
     }
+    
+    
 }
